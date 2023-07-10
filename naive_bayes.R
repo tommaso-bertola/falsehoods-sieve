@@ -85,7 +85,7 @@ ranking_per_class <- function(df_rank, counts, n_classes, frac = 0.5) {
     for (i in 2:(n_classes + 1)) {
         df_rank[, c(1, i)] %>%             # get the rank for that label
             arrange(desc(.[[2]])) %>%      # order by metric value
-            top_frac(frac, .[[2]]) %>%     # retain only the top_frac
+            top_frac(frac/n_classes, .[[2]]) %>%     # retain only the top_frac
             select(word) -> mywords[[i]]   # get the associatiod words and save them
     }
 
@@ -200,10 +200,10 @@ word_chi_squared <- function(word, train.df.train, n_classes) {
 
     # count per class the n__ values to compute the chi squared 
     for (i in 1:n_classes) {
-        n11 <- yw_c[yw_c$Labels == (i - 1), ]$c
-        n10 <- sum(yw_c[yw_c$Labels != (i - 1), ]$c)
-        n01 <- nw_c[yw_c$Labels == (i - 1), ]$c
-        n00 <- sum(nw_c[nw_c$Labels != (i - 1), ]$c)
+        n11 <- as.numeric(yw_c[yw_c$Labels == (i - 1), ]$c)
+        n10 <- as.numeric(sum(yw_c[yw_c$Labels != (i - 1), ]$c))
+        n01 <- as.numeric(nw_c[yw_c$Labels == (i - 1), ]$c)
+        n00 <- as.numeric(sum(nw_c[nw_c$Labels != (i - 1), ]$c))
 
         # actually compute the chi squared per class
         chi[i] <- ((n11 + n10 + n01 + n00) * (n11 * n00 - n10 * n01)^2) / ((n11 + n01) *
@@ -300,10 +300,10 @@ word_mutual_info <- function(word, train.df.train, n_classes) {
     # keeps the mutual information separated by class, for a single word
     MI <- vector(length = n_classes)
     for (i in 1:n_classes) {
-        n11 <- yw_c[yw_c$Labels == (i - 1), ]$c
-        n10 <- sum(yw_c[yw_c$Labels != (i - 1), ]$c)
-        n01 <- nw_c[yw_c$Labels == (i - 1), ]$c
-        n00 <- sum(nw_c[nw_c$Labels != (i - 1), ]$c)
+        n11 <- as.numeric(yw_c[yw_c$Labels == (i - 1), ]$c)
+        n10 <- as.numeric(sum(yw_c[yw_c$Labels != (i - 1), ]$c))
+        n01 <- as.numeric(nw_c[yw_c$Labels == (i - 1), ]$c)
+        n00 <- as.numeric(sum(nw_c[nw_c$Labels != (i - 1), ]$c))
         n1_ <- n11 + n10 # marginalize
         n0_ <- n01 + n00 #
         n_1 <- n01 + n11 #
