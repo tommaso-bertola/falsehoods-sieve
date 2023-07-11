@@ -136,7 +136,7 @@ ranking_per_mean <- function(df_rank, counts, n_classes, frac = 0.5) {
 # perform the feature selction with absolute frequencies
 # requires initial countings of the words, 
 # number of classes, and fraction to retain
-feature_selection.frequency_mean <- function(counts, n_classes, frac = 0.5) {
+feature_selection.frequency_per_mean <- function(counts, n_classes, frac = 0.5) {
 
     # sum columns to get the normalization factor
     counts %>%
