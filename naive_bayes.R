@@ -49,6 +49,7 @@ vocabulary <- function(train.df.train, tags_numbers) {
             unnest_tokens(word, Text) %>%             # use tidytext function to return tokenized message
             anti_join(get_stopwords(),                # remove from the dataframe of token the stop words
                       by = join_by(word)) %>%         #
+            filter(nchar(word)>=2) %>%                # make sure word length is greater or equal to 2
             cleaning_tokens() %>%                     # perform equivalence class normalization
             arrange(word) %>%                         # sort by word alphabetically
             group_by(word) %>%                        # group by 'word'
@@ -133,11 +134,10 @@ ranking_per_mean <- function(df_rank, counts, n_classes, frac = 0.5) {
 #  By frequency     #
 #####################
 
-# perform the feature selction with absolute frequencies
-# requires initial countings of the words, 
-# number of classes, and fraction to retain
-feature_selection.frequency_per_mean <- function(counts, n_classes, frac = 0.5) {
-
+# compute the frequency of a word in each class
+# requires just the counts; no parallel cores execution needed
+vocabulary_frequency <- function(counts){
+    
     # sum columns to get the normalization factor
     counts %>%
         select(-word) %>%
@@ -145,9 +145,20 @@ feature_selection.frequency_per_mean <- function(counts, n_classes, frac = 0.5) 
 
     # generate metric by computing the fraction of each word
     counts_prob <- cbind(counts["word"], counts[2:(n_classes + 1)] / tot_counts_per_class)
+    
+    return(counts_prob)
+}
 
+# perform the feature selction with absolute frequencies
+# requires initial countings of the words, 
+# number of classes, and fraction to retain
+feature_selection.frequency_per_mean <- function(counts, n_classes, frac = 0.5) {
+
+    # get the metric
+    prob <- vocabulary_frequency(counts)
+    
     # compute the dictionary
-    return(ranking_per_mean(counts_prob, counts, n_classes, frac))
+    return(ranking_per_mean(prob, counts, n_classes, frac))
 }
 
 # perform the feature selction with absolute frequencies by class
@@ -158,7 +169,6 @@ feature_selection.frequency_per_class <- function(counts, n_classes, frac = 0.5)
     # return the ranking per class
     return(ranking_per_class(counts, counts, n_classes, frac))
 }
-
 
 
 #####################
@@ -296,7 +306,6 @@ word_mutual_info <- function(word, train.df.train, n_classes) {
     }
 
     # compute the mutual information metric
-
     # keeps the mutual information separated by class, for a single word
     MI <- vector(length = n_classes)
     for (i in 1:n_classes) {
